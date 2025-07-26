@@ -39,7 +39,7 @@ app.use(cookieParser())
 //routes
 import { userRouter } from './routes/user.routes.js'
 import { videoRouter } from './routes/video.routes.js'
-// import { healthcheckRouter } from './routes/healthcheck.routes.js'
+import { healthcheckRouter } from './routes/healthcheck.routes.js'
 import { commentRouter } from './routes/comment.routes.js'
 import { likeRouter } from './routes/like.routes.js'
 import { subscriptionRouter } from './routes/subscription.routes.js'
@@ -53,7 +53,7 @@ import { dashboardRouter } from './routes/dashboard.routes.js'
 app.use("/api/v1/user", userRouter)
 // http://localhost:800/api/v1/user
 app.use("/api/v1/video", videoRouter)
-// app.use("/api/v1/healthcheck", healthcheckRouter)
+app.use("/api/v1/healthcheck", healthcheckRouter)
 app.use("/api/v1/comment", commentRouter)
 app.use("/api/v1/like", likeRouter)
 app.use("/api/v1/subscription", subscriptionRouter)
