@@ -63,3 +63,8 @@ app.use("/api/v1/user", userRouter)
 
 
 export default app
+
+
+//Note:
+//1. asyncHandler is used to handle errors in async functions, so we don't have to use try-catch blocks everywhere.
+//2. apiError is a custom error class to standardize error responses.         
