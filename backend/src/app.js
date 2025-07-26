@@ -52,7 +52,7 @@ import { videoRouter } from './routes/video.routes.js'
 //here we are not using app.get insteed we are using app.use because route and controllers are not in same folder hence routes are intrecting with middlewares hecse app.use
 app.use("/api/v1/user", userRouter)
 // http://localhost:800/api/v1/user
-// app.use("/api/v1/video", videoRouter)
+app.use("/api/v1/video", videoRouter)
 // app.use("/api/v1/healthcheck", healthcheckRouter)
 // app.use("/api/v1/comment", commentRouter)
 // app.use("/api/v1/like", likeRouter)
