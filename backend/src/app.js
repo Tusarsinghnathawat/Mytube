@@ -14,8 +14,7 @@ app.use(cors({
             'http://localhost:3001',
             'http://127.0.0.1:3000',
             'http://127.0.0.1:3001',
-            'https://mytube-zeta-three.vercel.app',
-            'https://mytube-tusarsinghnathawt.vercel.app' 
+            'https://mytube-inky.vercel.app/' 
         ];
         
         if (allowedOrigins.indexOf(origin) !== -1) {
