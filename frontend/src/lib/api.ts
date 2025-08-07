@@ -13,18 +13,7 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    // Get token from localStorage or cookies
-    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
-    // Safe logging with null checks
-    const baseURL = config.baseURL || 'undefined';
-    const url = config.url || 'undefined';
-    console.log('Making request to:', `${baseURL}${url}`);
-    console.log('With token:', token ? 'Yes' : 'No');
-    
+    // You can add auth token here if needed
     return config;
   },
   (error) => {
@@ -41,12 +30,7 @@ api.interceptors.response.use(
     // Handle common errors (401, 403, etc.)
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      console.log('Unauthorized access - clearing tokens');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Optionally redirect to login
-      window.location.href = '/login';
+      console.log('Unauthorized access');
     }
     return Promise.reject(error);
   }

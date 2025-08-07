@@ -42,80 +42,31 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     resolver: zodResolver(loginSchema),
   });
 
-  // const onSubmit = async (data: LoginFormData) => {
-  //   setIsLoading(true);
-
-  //   try {
-  //     const response = await authAPI.login({
-  //       email: data.email,
-  //       password: data.password,
-  //     });
-      
-  //     if (response.success) {
-  //       // Extract user data from response - handle both response structures
-  //       const userData = (response.data as any).user || response.data;
-  //       login(userData);
-  //       showToast('Login successful!', 'success');
-  //       onSuccess?.();
-  //     }
-  //   } catch (error: unknown) {
-  //     const err = error as any;
-  //     const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
-  //     showToast(errorMessage, 'error');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const onSubmit = async (data: LoginFormData) => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const response = await authAPI.login({
-      email: data.email,
-      password: data.password,
-    });
-    
-    if (response.success) {
-      // Extract user data from response - handle both response structures
-      const userData = (response.data as any).user || response.data;
+    try {
+      const response = await authAPI.login({
+        email: data.email,
+        password: data.password,
+      });
       
-      // ✅ ADD THIS: Store the access token in localStorage
-      if ((response.data as any).accessToken) {
-        localStorage.setItem('accessToken', (response.data as any).accessToken);
-        console.log('Access token stored:', (response.data as any).accessToken);
+      if (response.success) {
+        // Extract user data from response - handle both response structures
+        const userData = (response.data as any).user || response.data;
+        login(userData);
+        showToast('Login successful!', 'success');
+        onSuccess?.();
       }
-      
-      // ✅ ADD THIS: Also check for token in different response structure
-      if ((response.data as any).data?.accessToken) {
-        localStorage.setItem('accessToken', (response.data as any).data.accessToken);
-        console.log('Access token stored:', (response.data as any).data.accessToken);
-      }
-      
-      // ✅ ADD THIS: Store user data in localStorage as well
-      if (userData) {
-        localStorage.setItem('user', JSON.stringify(userData));
-        console.log('User data stored:', userData);
-      }
-      
-      // Your existing code
-      login(userData);
-      showToast('Login successful!', 'success');
-      onSuccess?.();
-      
-      // ✅ ADD THIS: Debug log to see the full response structure
-      console.log('Full login response:', response);
+    } catch (error: unknown) {
+      const err = error as any;
+      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: unknown) {
-    const err = error as any;
-    console.error('Login error details:', err); // ✅ ADD THIS: Better error logging
-    const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
-    showToast(errorMessage, 'error');
-  } finally {
-    setIsLoading(false);
-  }
-};
-  
+  };
+
   return (
     <div className="w-full max-w-sm mx-auto">
       <div className="text-center mb-6">
