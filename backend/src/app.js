@@ -14,7 +14,8 @@ app.use(cors({
             'http://localhost:3001',
             'http://127.0.0.1:3000',
             'http://127.0.0.1:3001',
-            'https://mytube-inky.vercel.app' 
+            'https://mytube-inky.vercel.app',
+            process.env.CORS_ORIGIN
         ];
         
         if (allowedOrigins.indexOf(origin) !== -1) {
