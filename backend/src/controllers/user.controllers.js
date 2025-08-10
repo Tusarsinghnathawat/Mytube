@@ -173,7 +173,7 @@ const loginUser = asyncHandler(async (req, res)=>{
     const isProd = process.env.NODE_ENV === "production"
     const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // will be false locally
+        secure: true,
         sameSite: 'none', // allow cross-site cookies
         path: '/',        // allow cookie for all routes
     };
@@ -211,7 +211,7 @@ const logoutUser = asyncHandler(async(req, res) => {
     const isProd = process.env.NODE_ENV === "production"
     const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // will be false locally
+        secure: true,
         sameSite: 'none', // allow cross-site cookies
         path: '/',        // allow cookie for all routes
     };
@@ -264,7 +264,7 @@ const refreshAccessToken = asyncHandler(async (req,res)=>{
         const isProd = process.env.NODE_ENV === "production"
         const options = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // will be false locally
+            secure: true,
             sameSite: 'none', // allow cross-site cookies
             path: '/',        // allow cookie for all routes
         };
