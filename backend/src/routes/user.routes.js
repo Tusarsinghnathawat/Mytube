@@ -43,7 +43,7 @@ userRouter.route("/current-user").get(verifyJwt, getCurrentUser)
 userRouter.route("/update-account").patch(verifyJwt, updateAccountDetails)
 userRouter.route("/update-avatar").patch(verifyJwt, upload.single("avatar"), updateUserAvatar)
 userRouter.route("/update-cover-image").patch(verifyJwt, upload.single("coverImage"), updateUserCoverImage)
-userRouter.route("/c/:username").get(verifyJwt,  getUserChannelProfile) // Assuming this is to get user by username
+userRouter.route("/c/:username").get(getUserChannelProfile) // public channel profile
 //user.prams se data aa raha hai (URL mai)
 userRouter.route("/history").get(verifyJwt, getWatchHistory)
 

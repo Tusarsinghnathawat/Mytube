@@ -11,13 +11,15 @@ import { verifyJwt } from "../middlewares/auth.middlewares.js";
 
 const tweetRouter = Router()
 
-tweetRouter.use(verifyJwt)
-
+// Public feed and tweet details
 tweetRouter.get("/", getAllTweets);
+tweetRouter.get("/:tweetId", getTweetById);
+
+// Authenticated routes
+tweetRouter.use(verifyJwt)
 tweetRouter.post("/", createTweet);
 tweetRouter.get("/user/:userId", getUserTweets);
 tweetRouter.patch("/:tweetId", updateTweet);
 tweetRouter.delete("/:tweetId", deleteTweet);
-tweetRouter.get("/:tweetId", getTweetById);
 
 export { tweetRouter }

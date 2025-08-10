@@ -69,7 +69,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         },
         {
             $addFields: {
-                videoCount: { $first: "$videos"}
+                videoCount: { $size: "$videos"}
             }
         },
         {

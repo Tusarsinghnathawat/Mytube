@@ -149,10 +149,10 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10 } = req.query
     
     //get all liked videos by current user
-    Like.aggregate([
+    const liked = await Like.aggregate([
         {
             $match: {
-                LikedBy: new mongoose.Types.ObjectId(req.user._id),
+                likedBy: new mongoose.Types.ObjectId(req.user._id),
                 video: { $exists: true } //onley get video likes
             }
         },
@@ -190,7 +190,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         },
         {
             $addFields:{
-                video: {$fist: "$video"}
+                video: { $first: "$video" }
             }
         },
         {
@@ -220,11 +220,10 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         new apiResponse(
             200,
             {
-                getLikedVideos,
+                videos: liked.map(doc => doc.video),
                 currentPage: parseInt(page),
                 totalPages: Math.ceil(totalLikedVideos/parseInt(limit)),
                 totalLikedVideos
-
             },
             "liked videos fetched successfully"
         )

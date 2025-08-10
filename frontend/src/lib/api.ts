@@ -118,7 +118,7 @@ export const authAPI = {
   },
 
   // Change password
-  changePassword: async (passwords: { oldPassword: string; newPassword: string }): Promise<ApiResponse<null>> => {
+  changePassword: async (passwords: { currentPassword: string; newPassword: string }): Promise<ApiResponse<null>> => {
     const response = await api.post('/user/change-password', passwords);
     return response.data;
   },
@@ -284,8 +284,8 @@ export const subscriptionAPI = {
   },
 
   // Get subscribed channels
-  getSubscribedChannels: async (): Promise<ApiResponse<User[]>> => {
-    const response = await api.get('/subscription/user/me');
+  getSubscribedChannels: async (subscriberId: string): Promise<ApiResponse<User[]>> => {
+    const response = await api.get(`/subscription/user/${subscriberId}`);
     return response.data;
   },
 
@@ -300,43 +300,43 @@ export const subscriptionAPI = {
 export const playlistAPI = {
   // Create playlist
   createPlaylist: async (data: { name: string; description?: string }): Promise<ApiResponse<Playlist>> => {
-    const response = await api.post('/playlists', data);
+    const response = await api.post('/playlist', data);
     return response.data;
   },
 
   // Get user playlists
   getUserPlaylists: async (userId: string): Promise<ApiResponse<Playlist[]>> => {
-    const response = await api.get(`/playlists/user/${userId}`);
+    const response = await api.get(`/playlist/user/${userId}`);
     return response.data;
   },
 
   // Get playlist by ID
   getPlaylistById: async (playlistId: string): Promise<ApiResponse<Playlist>> => {
-    const response = await api.get(`/playlists/${playlistId}`);
+    const response = await api.get(`/playlist/${playlistId}`);
     return response.data;
   },
 
   // Update playlist
   updatePlaylist: async (playlistId: string, updates: { name?: string; description?: string }): Promise<ApiResponse<Playlist>> => {
-    const response = await api.patch(`/playlists/${playlistId}`, updates);
+    const response = await api.patch(`/playlist/${playlistId}`, updates);
     return response.data;
   },
 
   // Delete playlist
   deletePlaylist: async (playlistId: string): Promise<ApiResponse<null>> => {
-    const response = await api.delete(`/playlists/${playlistId}`);
+    const response = await api.delete(`/playlist/${playlistId}`);
     return response.data;
   },
 
   // Add video to playlist
   addVideoToPlaylist: async (playlistId: string, videoId: string): Promise<ApiResponse<null>> => {
-    const response = await api.post(`/playlists/${playlistId}/videos/${videoId}`);
+    const response = await api.post(`/playlist/${playlistId}/videos/${videoId}`);
     return response.data;
   },
 
   // Remove video from playlist
   removeVideoFromPlaylist: async (playlistId: string, videoId: string): Promise<ApiResponse<null>> => {
-    const response = await api.delete(`/playlists/${playlistId}/videos/${videoId}`);
+    const response = await api.delete(`/playlist/${playlistId}/videos/${videoId}`);
     return response.data;
   },
 };

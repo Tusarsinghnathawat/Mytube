@@ -170,9 +170,11 @@ const loginUser = asyncHandler(async (req, res)=>{
          "-password -refreshToken"
     )
 
+    const isProd = process.env.NODE_ENV === "production"
     const options = {
-        httpOnly : true,
-        secure : true
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax"
     }
 
     return res
@@ -205,9 +207,11 @@ const logoutUser = asyncHandler(async(req, res) => {
         }
     )
 
+    const isProd = process.env.NODE_ENV === "production"
     const options = {
-        httpOnly :true,
-        secure : true
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax"
     }
 
     return res.
@@ -255,9 +259,11 @@ const refreshAccessToken = asyncHandler(async (req,res)=>{
             throw new apiError(401, "Refresh token is expired or used")
         }
     
+        const isProd = process.env.NODE_ENV === "production"
         const options = {
-            httpOnly : true,
-            secure : true
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? "none" : "lax"
         }
     
         const {accessToken, newrefreshToken} = await generateAccessAndRefreshTokens(user._id)

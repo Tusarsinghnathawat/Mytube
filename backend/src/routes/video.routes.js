@@ -15,9 +15,11 @@ const videoRouter = Router();
 //get all videos (public route - no auth needed)
 videoRouter.get("/", getAllVideos);
 
-//apply verifyJWT middleware to all routes that require authontication
-videoRouter.use(verifyJwt)
+// Public: single video details
+videoRouter.get("/:videoId", getVideoById);
 
+//apply verifyJWT middleware to routes that require authentication
+videoRouter.use(verifyJwt)
 
 //publish a new video
 videoRouter.post(
@@ -29,7 +31,6 @@ videoRouter.post(
     publishAVideo
 );
 
-videoRouter.get("/:videoId", getVideoById);
 videoRouter.patch(
     "/:videoId",
     upload.single("thumbnail"),
