@@ -173,9 +173,10 @@ const loginUser = asyncHandler(async (req, res)=>{
     const isProd = process.env.NODE_ENV === "production"
     const options = {
         httpOnly: true,
-        secure: isProd,
-        sameSite: "none"
-    }
+        secure: process.env.NODE_ENV === 'production', // will be false locally
+        sameSite: 'none', // allow cross-site cookies
+        path: '/',        // allow cookie for all routes
+    };
 
     return res
     .status(200)
@@ -210,9 +211,10 @@ const logoutUser = asyncHandler(async(req, res) => {
     const isProd = process.env.NODE_ENV === "production"
     const options = {
         httpOnly: true,
-        secure: true,
-        sameSite: "none"
-    }
+        secure: process.env.NODE_ENV === 'production', // will be false locally
+        sameSite: 'none', // allow cross-site cookies
+        path: '/',        // allow cookie for all routes
+    };
 
     return res.
     status(200)
@@ -262,9 +264,10 @@ const refreshAccessToken = asyncHandler(async (req,res)=>{
         const isProd = process.env.NODE_ENV === "production"
         const options = {
             httpOnly: true,
-            secure: true,
-            sameSite: "none"
-        }
+            secure: process.env.NODE_ENV === 'production', // will be false locally
+            sameSite: 'none', // allow cross-site cookies
+            path: '/',        // allow cookie for all routes
+        };
     
         const {accessToken, newrefreshToken} = await generateAccessAndRefreshTokens(user._id)
     
