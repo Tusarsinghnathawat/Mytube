@@ -4,30 +4,40 @@ import cors from 'cors'
 
 const app = express()
 app.use(cors({
-    
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        const allowedOrigins = [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            'http://127.0.0.1:3000',
-            'http://127.0.0.1:3001',
-            'https://mytube-inky.vercel.app',
-            process.env.CORS_ORIGIN
-        ];
-        
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
+      // log origin for debugging (Render logs)
+      console.log("CORS request origin:", origin);
+  
+      // Allow requests with no origin (curl, mobile)
+      if (!origin) return callback(null, true);
+  
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+        'https://mytube-inky.vercel.app',
+        process.env.CORS_ORIGIN // optionally set in Render
+      ];
+  
+      // allow exact matches OR vercel preview domains (for debugging)
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin) ||         // TEMP: any vercel.app subdomain
+        origin === process.env.CORS_ORIGIN;
+  
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn("Blocked CORS origin:", origin);
+        callback(new Error('Not allowed by CORS'));
+      }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}))
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  }));
+  
 
 app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({
