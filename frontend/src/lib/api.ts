@@ -3,7 +3,7 @@ import { ApiResponse, User, Video, Comment, Like, Subscription, Playlist, Tweet,
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://mytube-43oy.onrender.com/api/v1',
+  baseURL: process.env.NEXT_PUBLIC_API_URL, //only one url
   withCredentials: true, // Important for cookies
   headers: {
     'Content-Type': 'application/json',
