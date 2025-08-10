@@ -246,9 +246,14 @@ export const likeAPI = {
 
   // Toggle video like
   toggleVideoLike: async (videoId: string): Promise<ApiResponse<null>> => {
-    const response = await api.post(`/like/toggle/video/${videoId}`);
+    const response = await api.post(
+      `/like/toggle/video/${videoId}`,
+      {},
+      { withCredentials: true }
+    );
     return response.data;
   },
+  
 
   // Toggle comment like
   toggleCommentLike: async (commentId: string): Promise<ApiResponse<null>> => {
