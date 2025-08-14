@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { videoAPI, commentAPI, likeAPI, subscriptionAPI } from '@/lib/api';
 import { Video, Comment, User } from '@/types';
 import ReactPlayer from 'react-player';
@@ -58,6 +58,8 @@ export default function VideoPage({ params }: VideoPageProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(0);
+  const playerRef = useRef<ReactPlayer | null>(null);
 
   // Handle params asynchronously
   useEffect(() => {
@@ -208,8 +210,11 @@ export default function VideoPage({ params }: VideoPageProps) {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleVideoProgress = (state: { played: number; playedSeconds: number }) => {
+  const handleVideoProgress = (state: { played: number; playedSeconds: number; loaded?: number; loadedSeconds?: number }) => {
     setPlayed(state.played);
+    if (typeof state.loaded === 'number') {
+      setLoaded(state.loaded);
+    }
   };
 
   const handleVideoDuration = (duration: number) => {
@@ -243,6 +248,13 @@ export default function VideoPage({ params }: VideoPageProps) {
     } else if (isMuted) {
       setIsMuted(false);
     }
+  };
+
+  const handleSeek = (fraction: number) => {
+    if (fraction < 0) fraction = 0;
+    if (fraction > 1) fraction = 1;
+    setPlayed(fraction);
+    playerRef.current?.seekTo(fraction, 'fraction');
   };
 
   const handleSubscribe = async () => {
@@ -359,7 +371,7 @@ export default function VideoPage({ params }: VideoPageProps) {
             {/* Video Player and Info */}
             <div className="lg:col-span-2">
               {/* Video Player */}
-              <div className="relative aspect-w-16 aspect-h-9 bg-black rounded-lg overflow-hidden mb-6">
+              <div className="relative aspect-w-16 aspect-h-9 bg-black rounded-lg overflow-hidden mb-6 group">
                 {isVideoLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black">
                     <div className="text-center">
@@ -391,6 +403,7 @@ export default function VideoPage({ params }: VideoPageProps) {
           width="100%"
           height="100%"
           style={{ background: 'black' }}
+                  ref={playerRef}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
                   onProgress={handleVideoProgress}
@@ -408,16 +421,41 @@ export default function VideoPage({ params }: VideoPageProps) {
                 />
 
                 {/* Custom Video Controls Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  {/* Progress/Seek Bar */}
+                  <div className="w-full mb-1.5">
+                    <div className="relative h-1.5 flex items-center">
+                      <div className="absolute inset-0 bg-white/15 rounded-full" />
+                      <div
+                        className="absolute left-0 top-0 bottom-0 rounded-full"
+                        style={{ width: `${Math.min(loaded * 100, 100)}%`, backgroundColor: 'rgba(255,255,255,0.25)' }}
+                      />
+                      <div
+                        className="absolute left-0 top-0 bottom-0 bg-red-500 rounded-full"
+                        style={{ width: `${Math.min(played * 100, 100)}%` }}
+                      />
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={played * 100}
+                        onChange={(e) => handleSeek(parseFloat(e.target.value) / 100)}
+                        className="relative z-10 w-full h-1.5 bg-transparent appearance-none cursor-pointer accent-red-500"
+                        aria-label="Seek"
+                      />
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={togglePlay}
-                        className="text-white hover:bg-white/20"
+                        className="text-white/85 hover:text-white bg-white/8 hover:bg-white/15 p-1.5"
                       >
-                        {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                        {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                       </Button>
                       
                       <div className="flex items-center space-x-2">
@@ -425,7 +463,7 @@ export default function VideoPage({ params }: VideoPageProps) {
                           variant="ghost"
                           size="sm"
                           onClick={toggleMute}
-                          className="text-white hover:bg-white/20"
+                          className="text-white/85 hover:text-white bg-white/8 hover:bg-white/15 p-1.5"
                         >
                           {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         </Button>
@@ -436,12 +474,12 @@ export default function VideoPage({ params }: VideoPageProps) {
                           step="0.1"
                           value={volume}
                           onChange={handleVolumeChange}
-                          className="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-        />
-      </div>
+                          className="w-20 h-1 bg-white/25 rounded-lg appearance-none cursor-pointer accent-red-500"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2 text-sm text-white">
+                    <div className="flex items-center space-x-2 text-xs text-white/80">
                       <span>{formatDuration(played * duration)}</span>
                       <span>/</span>
                       <span>{formatDuration(duration)}</span>
