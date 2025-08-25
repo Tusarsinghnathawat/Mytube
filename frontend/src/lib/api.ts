@@ -207,6 +207,12 @@ export const videoAPI = {
     const response = await api.patch(`/video/${videoId}/toggle-publish`);
     return response.data;
   },
+
+  // Increment video view count
+  incrementVideoViews: async (videoId: string): Promise<ApiResponse<{ views: number }>> => {
+    const response = await api.post(`/video/${videoId}/increment-views`);
+    return response.data;
+  },
 };
 
 // Comment API

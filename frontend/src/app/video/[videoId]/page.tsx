@@ -45,6 +45,7 @@ export default function VideoPage({ params }: VideoPageProps) {
   const [isLoadingLikes, setIsLoadingLikes] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscriberCount, setSubscriberCount] = useState(0);
   const [commentLikes, setCommentLikes] = useState<{ [commentId: string]: { isLiked: boolean; likeCount: number } }>({});
   const [likingComments, setLikingComments] = useState<{ [commentId: string]: boolean }>({});
   const [videoId, setVideoId] = useState<string>('');
@@ -93,6 +94,10 @@ export default function VideoPage({ params }: VideoPageProps) {
         const videoResponse = await videoAPI.getVideoById(videoId);
         const videoData = videoResponse.data as Video;
         setVideo(videoData);
+        // Seed duration from backend metadata as a fallback
+        if (typeof videoData.duration === 'number' && videoData.duration > 0) {
+          setDuration(videoData.duration);
+        }
         
         // Fetch comments
         try {
@@ -140,6 +145,18 @@ export default function VideoPage({ params }: VideoPageProps) {
             setIsSubscribed(false);
           }
         }
+
+        // Fetch subscriber count for the video owner
+        if (videoData.owner?._id) {
+          try {
+            const subscribersResponse = await subscriptionAPI.getChannelSubscribers(videoData.owner._id);
+            const subscribersData = subscribersResponse.data as User[];
+            setSubscriberCount(subscribersData?.length || 0);
+          } catch (subscribersErr: unknown) {
+            console.error('Failed to fetch subscriber count:', subscribersErr);
+            setSubscriberCount(0);
+          }
+        }
         
       } catch (err: unknown) {
         setError((err as any)?.response?.data?.message || 'Failed to load video');
@@ -150,6 +167,39 @@ export default function VideoPage({ params }: VideoPageProps) {
 
     fetchVideoData();
   }, [videoId, isAuthenticated]);
+
+  // Refresh video data when page becomes visible (for updated counts)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && video && video._id && isAuthenticated) {
+        // Refresh like status and count
+        likeAPI.getVideoLikeStatus(video._id)
+          .then(response => {
+            const likeData = response.data as { isLiked: boolean; totalLikes: number };
+            setIsLiked(likeData?.isLiked ?? false);
+            setLikeCount(likeData?.totalLikes ?? 0);
+          })
+          .catch(err => {
+            console.error('Failed to refresh like status:', err);
+          });
+
+        // Refresh subscriber count
+        if (video.owner?._id) {
+          subscriptionAPI.getChannelSubscribers(video.owner._id)
+            .then(response => {
+              const subscribersData = response.data as User[];
+              setSubscriberCount(subscribersData?.length || 0);
+            })
+            .catch(err => {
+              console.error('Failed to refresh subscriber count:', err);
+            });
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [video, isAuthenticated]);
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -162,8 +212,27 @@ export default function VideoPage({ params }: VideoPageProps) {
       const response = await likeAPI.toggleVideoLike(videoId);
       
       // Update state based on backend response
-      setIsLiked(!isLiked);
-      setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+      // The backend should return the updated like status and count
+      if (response.data && typeof response.data === 'object') {
+        const responseData = response.data as any;
+        if ('isLiked' in responseData) {
+          setIsLiked(responseData.isLiked);
+        } else {
+          // Fallback to toggle if backend doesn't return isLiked
+          setIsLiked(!isLiked);
+        }
+        
+        if ('totalLikes' in responseData) {
+          setLikeCount(responseData.totalLikes);
+        } else {
+          // Fallback to manual update if backend doesn't return totalLikes
+          setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+        }
+      } else {
+        // Fallback to manual update if response structure is unexpected
+        setIsLiked(!isLiked);
+        setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+      }
     } catch (err: unknown) {
       console.error('Failed to like video:', err);
     } finally {
@@ -224,6 +293,29 @@ export default function VideoPage({ params }: VideoPageProps) {
   const handleVideoReady = () => {
     setIsVideoLoading(false);
     setVideoError(null);
+    // Ensure duration reflects the actual media duration if available
+    try {
+      const detectedDuration = playerRef.current?.getDuration?.();
+      if (typeof detectedDuration === 'number' && detectedDuration > 0) {
+        setDuration(detectedDuration);
+      }
+    } catch (_) {
+      // ignore
+    }
+    
+    // Increment view count when video starts playing
+    if (video && video._id) {
+      videoAPI.incrementVideoViews(video._id)
+        .then(response => {
+          // Update the local video views count
+          if (response.data && typeof response.data === 'object' && 'views' in response.data) {
+            setVideo(prev => prev ? { ...prev, views: response.data.views } : null);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to increment video views:', err);
+        });
+    }
   };
 
   const handleVideoError = (error: any) => {
@@ -276,9 +368,17 @@ export default function VideoPage({ params }: VideoPageProps) {
       const responseData = response.data as any;
       if (responseData && typeof responseData === 'object' && 'isSubscribed' in responseData) {
         setIsSubscribed(responseData.isSubscribed);
+        
+        // Update subscriber count based on subscription action
+        if (responseData.isSubscribed) {
+          setSubscriberCount(prev => prev + 1);
+        } else {
+          setSubscriberCount(prev => Math.max(0, prev - 1));
+        }
       } else {
         // Fallback to toggle if response doesn't have isSubscribed
         setIsSubscribed(!isSubscribed);
+        setSubscriberCount(prev => isSubscribed ? Math.max(0, prev - 1) : prev + 1);
       }
     } catch (err: any) {
       console.error('Failed to toggle subscription:', err);
@@ -480,9 +580,9 @@ export default function VideoPage({ params }: VideoPageProps) {
                     </div>
                     
                     <div className="flex items-center space-x-2 text-xs text-white/80">
-                      <span>{formatDuration(played * duration)}</span>
+                      <span>{formatDuration((played || 0) * (duration || 0))}</span>
                       <span>/</span>
-                      <span>{formatDuration(duration)}</span>
+                      <span>{formatDuration(duration || 0)}</span>
                     </div>
                   </div>
                 </div>
@@ -560,6 +660,7 @@ export default function VideoPage({ params }: VideoPageProps) {
                           {video.owner?.fullName || video.owner?.FullName || 'Unknown'}
                         </h3>
                         <p className="text-sm text-gray-400">@{video.owner?.username}</p>
+                        <p className="text-xs text-gray-500">{subscriberCount} subscribers</p>
                       </Link>
                     </div>
                   </div>
